@@ -1,0 +1,6 @@
+# Require review from repository owner by default
+* @AkhilsaiSammeta
+
+# Optionally, assign specific paths later, for example:
+# /src/adapters/ @AkhilsaiSammeta
+# /prisma/ @AkhilsaiSammeta
