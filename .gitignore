@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.*
+.prisma/
+coverage/
+.DS_Store
+.vscode/

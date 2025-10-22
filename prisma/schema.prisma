@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  RAZORPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  REQUIRES_ACTION
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                 String            @id @default(cuid())
+  provider           PaymentProvider
+  providerPaymentId  String
+  amount             Int
+  currency           String
+  status             PaymentStatus
+  description        String?
+  metadata           PaymentMetadata[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  idempotencyKey     IdempotencyKey?   @relation(fields: [idempotencyKeyId], references: [id])
+  idempotencyKeyId   String?           @unique
+  webhookEvents      WebhookEvent[]
+
+  @@unique([provider, providerPaymentId])
+}
+
+model PaymentMetadata {
+  id        String   @id @default(cuid())
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  paymentId String
+  key       String
+  value     String
+
+  @@unique([paymentId, key])
+}
+
+model IdempotencyKey {
+  id            String    @id @default(cuid())
+  key           String    @unique
+  endpoint      String
+  method        String
+  requestHash   String
+  responseBody  String?
+  responseCode  Int?
+  lockedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  expiresAt     DateTime?
+  payment       Payment?
+}
+
+model WebhookEvent {
+  id          String          @id @default(cuid())
+  provider    PaymentProvider
+  eventId     String
+  eventType   String
+  payload     Json
+  signature   String?
+  receivedAt  DateTime        @default(now())
+  payment     Payment?        @relation(fields: [paymentId], references: [id])
+  paymentId   String?
+
+  @@index([provider, eventId])
+}
