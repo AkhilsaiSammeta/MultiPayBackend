@@ -1,40 +1,45 @@
-# universal-pay-backend
+# MultiPay Backend (Node + TypeScript)
 
-Node.js + TypeScript backend implementing adapters for Stripe, PayPal, and Razorpay with secure webhook handling, idempotency, and Postgres models via Prisma.
+Simple payments API for Stripe, PayPal, and Razorpay. Includes idempotency, secure webhooks, and Postgres via Prisma.
 
-Quick start
+## Requirements
+- Node.js 18.18+
+- PostgreSQL (local or hosted)
+- Provider keys (optional to start; needed for real calls)
 
-1. Copy `.env.example` to `.env` and fill values (DATABASE_URL, provider keys, webhook secrets).
-2. Install dependencies:
-
+## Quick start
+1) Copy env and fill at least `DATABASE_URL` (provider keys later):
+```powershell
+Copy-Item .env.example .env
+```
+2) Install and set up the database:
 ```powershell
 npm install
-```
-
-3. Generate Prisma client and run migrations:
-
-```powershell
-npx prisma generate
 npx prisma migrate dev --name init
 ```
-
-4. Run in development:
-
+3) Run the server (default http://localhost:3000):
 ```powershell
 npm run dev
 ```
 
-What I implemented
+## Core endpoints
+- POST /payments — create a payment (requires header: Idempotency-Key)
+- POST /payments/:id/confirm — confirm when extra steps (e.g., 3DS) are needed
+- POST /payments/:id/refund — issue a refund
+- POST /webhooks/:provider — provider webhooks (server-to-server)
 
-- Project scaffold (TypeScript, ESLint, Vitest).
-- Prisma schema for Payment, IdempotencyKey, WebhookEvent, and supporting models.
-- Adapters for Stripe, PayPal, and Razorpay with webhook construction and signature verification.
-- Idempotency service + repository to deduplicate / cache results.
-- Payment service wiring create/confirm/refund flows and webhook processing.
-- Express app with routes for payments and webhooks, safe raw-body handling for signature verification.
+Tip: Use any REST client to call POST /payments with a unique `Idempotency-Key` to avoid duplicates.
 
-Next steps
+## Configure providers later
+Fill these in `.env` when ready:
+- Stripe: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+- PayPal: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_WEBHOOK_ID
+- Razorpay: RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET
 
-- Install dependencies and run the app.
-- Add more unit/integration tests (I created tests folder).
-- Wire CI and document environment variables (`.env.example`).
+## Learn more (short reads)
+- `docs/beginner-guide.md` — step-by-step setup and sample requests
+- `docs/linking-to-frontend.md` — how to call this API from a UI (CORS, idempotency, examples)
+- `docs/backend-overview.md` — how the code is organized (routes, services, adapters)
+- `docs/file-by-file-overview.md` — what each file does
+
+That’s it. Start with the beginner guide, then try creating a payment. If you want a sample UI, tell me your stack and I’ll scaffold it.
